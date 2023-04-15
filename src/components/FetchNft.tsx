@@ -1,13 +1,13 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react"
-import { Metaplex, walletAdapterIdentity } from "@metaplex-foundation/js"
+import { Metaplex, findNftsByMintListOperation, walletAdapterIdentity } from "@metaplex-foundation/js"
 import { FC, useEffect, useState } from "react"
 import styles from "../styles/custom.module.css"
 import { PublicKey } from "@solana/web3.js"
+import { Button } from "@chakra-ui/react"
 
 export const FetchNft: FC = () => {
   const [nftData, setNftData] = useState(null)
   const [nftMints, setNftMints] = useState(null)
-
 
   const wallet = useWallet()
   const { connection } = useConnection()
@@ -24,39 +24,39 @@ export const FetchNft: FC = () => {
     if (!wallet.connected) {
       return
     }
-    const authoritykey =  new PublicKey("GCkKhzFSyAC35nArqwsvMBvLFnoXNWFAMjx3dsZh2GpV")
-    const nfts = await (await metaplex
+
+    const nfts = await metaplex
       .nfts()
       .findAllByOwner({ owner: wallet.publicKey })
-      .run())
-      // .filter((r) => r.updateAuthorityAddress === authoritykey)
-  
-    const nftsnew = nfts
-    
-    console.log(nfts) 
+      .run()
 
     let nftData = []
     let nftMints = [] 
-  
+
+    
+
     for (let i = 0; i < nfts.length; i++) {
-      let fetchResult = await fetch(nfts[i].uri,{
-        mode: 'no-cors',
-        headers : { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-         }
-  
-      })
       let fetchMint = await  new PublicKey(nfts[i].address).toBase58()
-      console.log(fetchMint)
-      if (!fetchResult.ok) {
+
+
+
+      let fetchResult = await fetch(nfts[i].uri, 
+      //   {
+      //      headers : { 
+      //   'Content-Type': 'application/json',
+      //   'Accept': 'application/json'
+      // }
+      //  }
+       );
+      
+
       let json = await fetchResult.json()
-      // nftData.push(json)
-      }
+      let mergedarray = [json, fetchMint]
+      nftData.push(mergedarray)
+      console.log(mergedarray)
+      
 
-      nftMints.push(fetchMint)
     }
-
     setNftMints(nftMints)
     setNftData(nftData)
   }
@@ -65,30 +65,34 @@ export const FetchNft: FC = () => {
     fetchNfts()
   }, [wallet])
 
+
+  let cards = 2
+
+
   return (
     <div>
-      {nftMints && nftData &&  (
+      {nftData && nftMints &&
+       (
         <div className={styles.gridNFT}>
-          <div>
-          {nftData.map((nft) => (
-            
-            <>
-              <img src={nft.image} />
-               <ul>{nft.properties.creators.share}</ul>
-              <ul>{nft.name}</ul>
-            </>
-           
-          ))}
-          {nftMints.map((nftmint) => (
-            <>
-              <button onClick={handleClick} data-value-mint={nftmint}>STAKE</button> 
-            </>
-          ))}
-          </div>
-      
-        </div>
+   
+
+            {nftData.map((nft) => (
+              <div>
         
+           
+              <img src={nft[0].image} />
+              <ul>{nft[0].name}</ul>
+              <button onClick={handleClick} data-value-mint={nft[1]}>STAKE</button>
+            </div>
+            
+          ))}      
+        
+
+    
+        </div>
       )}
+     
+    
     </div>
   )
 }
