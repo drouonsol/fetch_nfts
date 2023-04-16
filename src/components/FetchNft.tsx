@@ -11,7 +11,7 @@ export const FetchNft: FC = () => {
 
   const wallet = useWallet()
   const { connection } = useConnection()
-
+  const authoritykey =  new PublicKey("BWxYFcNv1TacJTkVo39eimrJHWiBkNYn2KRebAbEr6ZV")
   const metaplex = Metaplex.make(connection).use(walletAdapterIdentity(wallet))
 
   function handleClick(this: any,event: any) {
@@ -24,12 +24,18 @@ export const FetchNft: FC = () => {
     if (!wallet.connected) {
       return
     }
+    
 
-    const nfts = await metaplex
+
+    const nfts =  (await metaplex
       .nfts()
       .findAllByOwner({ owner: wallet.publicKey })
-      .run()
-
+      .run())
+      .filter((r) => r.updateAuthorityAddress.toBase58().toString() === "BWxYFcNv1TacJTkVo39eimrJHWiBkNYn2KRebAbEr6ZV") 
+      
+    console.log(nfts)
+    const newnfts = nfts
+    console.log(newnfts)
     let nftData = []
     let nftMints = [] 
 
@@ -37,10 +43,10 @@ export const FetchNft: FC = () => {
 
     for (let i = 0; i < nfts.length; i++) {
       let fetchMint = await  new PublicKey(nfts[i].address).toBase58()
-
-
-
-      let fetchResult = await fetch(nfts[i].uri, 
+      console.log(i)
+      console.log(nfts.length)
+      console.log(nfts[i].uri)
+      let fetchResult = await fetch(nfts[i].uri
       //   {
       //      headers : { 
       //   'Content-Type': 'application/json',
@@ -49,7 +55,7 @@ export const FetchNft: FC = () => {
       //  }
        );
       
-
+      console.log(fetchResult)
       let json = await fetchResult.json()
       let mergedarray = [json, fetchMint]
       nftData.push(mergedarray)
@@ -70,12 +76,13 @@ export const FetchNft: FC = () => {
 
 
   return (
-    <div>
+    <div style={{textAlign:"left"}}>
+         <h1 style={{fontSize:"200%"}}>Unstaked:</h1>
       {nftData && nftMints &&
        (
-        <div className={styles.gridNFT}>
+        <div className={styles.gridNFT}  style={{textAlign:"center"}}>
    
-
+       
             {nftData.map((nft) => (
               <div>
         
@@ -88,10 +95,10 @@ export const FetchNft: FC = () => {
           ))}      
         
 
-    
         </div>
       )}
      
+     <h1 style={{fontSize:"200%"}}>Staked:</h1>
     
     </div>
   )
